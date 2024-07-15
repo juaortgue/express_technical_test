@@ -9,8 +9,14 @@ movieRouter.use(verifyToken);
 
 movieRouter.get('/', (req, res) => {
     const userId = req.user.user_id; 
-    let query = 'SELECT m.*, c.name as category_name FROM movies m LEFT JOIN movie_categories mc ON m.id = mc.movie_id  LEFT JOIN categories c ON mc.category_id = c.id WHERE user_id = ? ';
-    const { name, category } = req.query;
+    let query = `
+    SELECT m.*, GROUP_CONCAT(c.name) as category_names
+    FROM movies m
+    LEFT JOIN movie_categories mc ON m.id = mc.movie_id
+    LEFT JOIN categories c ON mc.category_id = c.id
+    WHERE m.user_id = ?
+    GROUP BY m.id;
+`;    const { name, category } = req.query;
 
     if (name) {
         query += 'AND m.name LIKE ?';
