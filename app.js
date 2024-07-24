@@ -6,7 +6,6 @@ const authRouter = require('./routes/authRoute');
 const app = express();
 
 app.use(bodyParser.json());
-app.use('/movies', movieRouter);
 app.use('/', authRouter);
 app.use('/movies', movieRouter);
 
