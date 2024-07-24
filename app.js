@@ -1,5 +1,4 @@
 const express = require('express');
-const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const movieRouter = require('./routes/moviesRoute');
 const authRouter = require('./routes/authRoute');
