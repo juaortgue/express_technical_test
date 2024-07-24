@@ -12,20 +12,19 @@ const isTokenProvided = (req,res)=>{
 controller.getAllMovies = async (req, res) => {
     const userId = req.user.id;
 
-    // Check if token is provided and valid
     const tokenValidationError = isTokenProvided(req, res);
     if (tokenValidationError) return tokenValidationError;
 
-    const { name } = req.query; // Get the name parameter from the query string
+    const { name } = req.query; 
 
     try {
-        // Build the query conditions
+
         const queryConditions = { where: { user_id: userId } };
 
         if (name) {
-            // Add name filter if provided
+            
             queryConditions.where.name = {
-                [Op.like]: `%${name}%` // Case-insensitive search
+                [Op.like]: `%${name}%` 
             };
         }
 
