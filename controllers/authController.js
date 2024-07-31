@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'jwt_secret';
-const { User } = require('../config/db');
-
+const {sequelize} = require('../config/db');
+const UserModel = require('../models/userModel')(sequelize);
 const controller = {}
 
 function generateToken(user) {
+    
     const payload = {
         email: user.email,
         id: user.id
@@ -14,10 +15,11 @@ function generateToken(user) {
 }
 
 controller.register = async (req, res) => {
+
     const { email, password } = req.body;
 
     try {
-        const newUser = await User.create({ email, password });
+        const newUser = await UserModel.create({ email, password });
         
         const token = generateToken({ email: newUser.email, id: newUser.id });
         res.status(201).json({ message: 'User registered successfully', token });
@@ -29,11 +31,12 @@ controller.register = async (req, res) => {
 }
 
 controller.login = async (req,res)=>{
+    
     const {email,password } = req.body;
 
     try {
 
-        const user = await User.findOne({ where: { email: email, password: password } })
+        const user = await UserModel.findOne({ where: { email: email, password: password } })
 
         if (user==null) {
             return res.status(401).json({error: 'Invalid email or password'})

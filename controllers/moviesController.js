@@ -1,15 +1,19 @@
-const { Movie } = require('../config/db');
-const { MovieCategory } = require('../config/db');
-const controller = {}
+const {sequelize} = require('../config/db');
+const MovieModel = require('../models/movieModel')(sequelize);
+const MovieCategoryModel = require('../models/movieCategoryModel')(sequelize);
 const { Op } = require('sequelize');
 
+const controller = {}
+
 const isTokenProvided = (req,res)=>{
+
     if (!req.user || !req.user.id) {
         return res.status(403).json({ error: 'Token not provided or invalid' });
     }
 }
 
 controller.getAllMovies = async (req, res) => {
+
     const userId = req.user.id;
 
     const tokenValidationError = isTokenProvided(req, res);
@@ -28,7 +32,7 @@ controller.getAllMovies = async (req, res) => {
             };
         }
 
-        const movies = await Movie.findAll(queryConditions);
+        const movies = await MovieModel.findAll(queryConditions);
 
         if (movies.length > 0) {
             res.status(200).json({ movies });
@@ -42,6 +46,7 @@ controller.getAllMovies = async (req, res) => {
 
 
 controller.updateMovie = async (req, res) => {
+
     const movieId = req.params.id; 
     const { name, year_of_release, cover, categories } = req.body;
     const userId = req.user.id;
@@ -50,21 +55,21 @@ controller.updateMovie = async (req, res) => {
 
     try {
 
-        const movie = await Movie.findOne({ where: { id: movieId, user_id: userId } });
+        const movie = await MovieModel.findOne({ where: { id: movieId, user_id: userId } });
 
         if (!movie) {
             return res.status(404).json({ error: 'Movie not found or not authorized to update' });
         }
 
-        await Movie.update(
+        await MovieModel.update(
             { name, year_of_release, cover },
             { where: { id: movieId } }
         );
 
-        await MovieCategory.destroy({ where: { movie_id: movieId } });
+        await MovieCategoryModel.destroy({ where: { movie_id: movieId } });
 
         const categoryEntries = categories.map(categoryId => ({ movie_id: movieId, category_id: categoryId }));
-        await MovieCategory.bulkCreate(categoryEntries);
+        await MovieCategoryModel.bulkCreate(categoryEntries);
 
         res.status(200).json({ message: 'Movie updated successfully' });
     } catch (error) {
@@ -73,6 +78,7 @@ controller.updateMovie = async (req, res) => {
 };
 
 controller.deleteMovie = async (req,res)=>{
+    
     const userId = req.user.id;
     const movieId = req.params.id;
 
@@ -80,15 +86,15 @@ controller.deleteMovie = async (req,res)=>{
 
     try {
 
-        const movie = await Movie.findOne({ where: { id: movieId, user_id: userId } });
+        const movie = await MovieModel.findOne({ where: { id: movieId, user_id: userId } });
 
         if (!movie) {
             return res.status(404).json({ error: 'Movie not found or not authorized to delete' });
         }
 
-        await MovieCategory.destroy({ where: { movie_id: movieId } });
+        await MovieCategoryModel.destroy({ where: { movie_id: movieId } });
 
-        await Movie.destroy({ where: { id: movieId } });
+        await MovieModel.destroy({ where: { id: movieId } });
 
         res.status(200).json({ message: 'Movie deleted successfully' });
     } catch (error) {
@@ -107,12 +113,12 @@ controller.createMovie = async (req,res)=>{
 
     try {
 
-        const newMovie = await Movie.create({name:name, year_of_release:year_of_release, cover:cover, user_id:userId})
+        const newMovie = await MovieModel.create({name:name, year_of_release:year_of_release, cover:cover, user_id:userId})
 
         if (newMovie) {
-
+            console.log("categorias: ",categories);
             categories.forEach((category_id, index) => {
-                MovieCategory.create({movie_id:newMovie.id,category_id:category_id})
+                MovieCategoryModel.create({movie_id:newMovie.id,category_id:category_id})
               });
 
             res.status(201).json({ message: 'Movie created successfully', movie: newMovie });

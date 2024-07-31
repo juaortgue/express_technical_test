@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'jwt_secret';
 
 function verifyToken(req, res, next) {
+    
     const token = req.headers['authorization'];
 
     if (!token) {
